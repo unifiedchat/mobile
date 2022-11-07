@@ -1,8 +1,9 @@
 import "package:flutter/material.dart";
 import "package:font_awesome_flutter/font_awesome_flutter.dart";
+import "package:multi_stream_chat/notifiers/twitch_notifier.dart";
+import "package:provider/provider.dart";
 import "package:tmi_dart/tmi.dart";
 
-// TODO: settings page twitch integration is not working
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -11,11 +12,30 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPage extends State<SettingsPage> {
+  final _usernameController = TextEditingController();
+  final _tokenController = TextEditingController();
+  final _channelController = TextEditingController();
+
   final _biggerFont = const TextStyle(fontSize: 20);
-  bool _connecting = false;
+  bool _loading = false;
+  bool _connected = false;
+  bool _error = false;
 
   @override
   Widget build(BuildContext context) {
+    TwitchNotifier twitchNotifier =
+        Provider.of<TwitchNotifier>(context, listen: false);
+
+    if (twitchNotifier.username.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _usernameController.text = twitchNotifier.username;
+        _channelController.text = twitchNotifier.channel;
+        _tokenController.text = twitchNotifier.token;
+
+        _authenticate();
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
@@ -36,28 +56,31 @@ class _SettingsPage extends State<SettingsPage> {
               style: _biggerFont,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
             child: TextField(
-              decoration: InputDecoration(
+              controller: _usernameController,
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: "Username",
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
             child: TextField(
-              decoration: InputDecoration(
+              controller: _tokenController,
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: "OAuth Token",
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
             child: TextField(
-              decoration: InputDecoration(
+              controller: _channelController,
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: "Channel",
               ),
@@ -79,8 +102,15 @@ class _SettingsPage extends State<SettingsPage> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.all(16.0),
                         textStyle: _biggerFont),
-                    onPressed: _connecting ? null : _authenticate,
-                    child: Text(_connecting ? "Connecting" : "Connect"),
+                    onPressed:
+                        _loading || _connected ? null : () => _authenticate(),
+                    child: Text(_loading
+                        ? "Connecting"
+                        : _error
+                            ? "Error, try again"
+                            : _connected
+                                ? "Connected"
+                                : "Connect"),
                   ),
                 ],
               ),
@@ -91,34 +121,66 @@ class _SettingsPage extends State<SettingsPage> {
     );
   }
 
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _tokenController.dispose();
+    _channelController.dispose();
+
+    super.dispose();
+  }
+
   void _authenticate() {
-    if (_connecting) {
-      return;
-    }
+    if (_loading || _connected) return;
+
+    final String username = _usernameController.text;
+    final String token = _tokenController.text;
+    final String channel = _channelController.text;
+
+    if (username.isEmpty || token.isEmpty || channel.isEmpty) return;
+
     setState(() {
-      _connecting = true;
+      _loading = true;
+      _connected = false;
+      _error = false;
     });
 
     final client = Client(
-      channels: ["real_barbarbar338"],
+      channels: [channel],
       connection: Connection(
         secure: true,
-        reconnect: true,
+        reconnect: false,
       ),
-      identity: Identity("username", "oauth:token"),
+      identity: Identity(username, token),
     );
 
-    client.connect();
+    TwitchNotifier twitchNotifier =
+        Provider.of<TwitchNotifier>(context, listen: false);
 
-    client.on("connected", (channel, user, message) {
-      print("Connected to $channel as $user");
+    client.on("connected", (address, port) {
       setState(() {
-        _connecting = false;
+        _loading = false;
+        _error = false;
+        _connected = true;
       });
+
+      client.close();
+
+      twitchNotifier.setCredentials(username, token, channel);
     });
 
-    client.on("message", (channel, userstate, message, self) {
-      print("$channel, $userstate, $message, $self");
+    client.on("disconnected", (reason) {
+      setState(() {
+        _loading = false;
+        _error = true;
+        _connected = false;
+      });
+
+      client.close();
+
+      twitchNotifier.setCredentials("", "", "");
     });
+
+    client.connect();
   }
 }

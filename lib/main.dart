@@ -20,7 +20,8 @@ void main() {
         ChangeNotifierProvider<ScrollNotifier>(
             create: (context) => ScrollNotifier()),
         ChangeNotifierProvider<TwitchNotifier>(
-            create: (context) => TwitchNotifier()),
+          create: (context) => TwitchNotifier(),
+        ),
         ChangeNotifierProxyProvider0<MessagesNotifier>(
           create: (context) => MessagesNotifier(
               Provider.of<ScrollNotifier>(context, listen: false)),
