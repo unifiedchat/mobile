@@ -1,0 +1,30 @@
+name: multi_stream_chat
+description: A chat app for streamers who streams on multiple platforms.
+publish_to: none
+version: "0.0.1"
+
+environment:
+  sdk: ">=2.18.2 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  meta: ^1.8.0
+  provider: ^6.0.4
+  font_awesome_flutter: ^10.2.1
+  intl: ^0.17.0
+  window_size:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding.git
+      path: plugins/window_size
+  tmi_dart:
+    git:
+      url: https://github.com/alanqchen/tmi_dart.git
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: false
