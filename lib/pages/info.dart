@@ -44,7 +44,7 @@ class InfoPage extends StatelessWidget {
           Padding(
             padding: _padding,
             child: const Text(
-                "Currently supporting only Twitch chat. More platforms will be added in the future."),
+                "Currently supporting only Twitch chat (without emojis). More platforms will be added in the future."),
           ),
           Padding(
             padding: _padding,

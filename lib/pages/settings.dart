@@ -94,7 +94,8 @@ class _SettingsPage extends State<SettingsPage> {
                 children: <Widget>[
                   Positioned.fill(
                     child: Container(
-                      decoration: const BoxDecoration(color: Colors.green),
+                      decoration: BoxDecoration(
+                          color: _connected ? Colors.red : Colors.green),
                     ),
                   ),
                   TextButton(
@@ -102,14 +103,17 @@ class _SettingsPage extends State<SettingsPage> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.all(16.0),
                         textStyle: _biggerFont),
-                    onPressed:
-                        _loading || _connected ? null : () => _authenticate(),
+                    onPressed: _loading || _error
+                        ? null
+                        : _connected
+                            ? _disconnect
+                            : _authenticate,
                     child: Text(_loading
                         ? "Connecting"
                         : _error
                             ? "Error, try again"
                             : _connected
-                                ? "Connected"
+                                ? "Disconnect"
                                 : "Connect"),
                   ),
                 ],
@@ -164,8 +168,6 @@ class _SettingsPage extends State<SettingsPage> {
         _connected = true;
       });
 
-      client.close();
-
       twitchNotifier.setCredentials(username, token, channel);
     });
 
@@ -176,11 +178,22 @@ class _SettingsPage extends State<SettingsPage> {
         _connected = false;
       });
 
-      client.close();
-
       twitchNotifier.setCredentials("", "", "");
     });
 
     client.connect();
+  }
+
+  void _disconnect() {
+    TwitchNotifier twitchNotifier =
+        Provider.of<TwitchNotifier>(context, listen: false);
+
+    setState(() {
+      _loading = false;
+      _error = false;
+      _connected = false;
+    });
+
+    twitchNotifier.setCredentials("", "", "");
   }
 }

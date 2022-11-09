@@ -2,8 +2,9 @@ import "package:flutter/material.dart";
 import "package:font_awesome_flutter/font_awesome_flutter.dart";
 import "package:multi_stream_chat/notifiers/messages_notifier.dart";
 import "package:multi_stream_chat/notifiers/scroll_notifier.dart";
-import 'package:multi_stream_chat/notifiers/twitch_notifier.dart';
+import "package:multi_stream_chat/notifiers/twitch_notifier.dart";
 import "package:provider/provider.dart";
+import "package:tmi_dart/tmi.dart";
 
 class MessageContainer extends StatefulWidget {
   const MessageContainer({super.key});
@@ -29,8 +30,7 @@ class MyHomePage extends StatelessWidget {
 
 class _MessageContainerState extends State<MessageContainer> {
   final ScrollController _scrollController = ScrollController();
-
-  // TODO: initialize twitch client.
+  String _lastChannel = "";
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +38,8 @@ class _MessageContainerState extends State<MessageContainer> {
         Provider.of<ScrollNotifier>(context, listen: true);
     TwitchNotifier twitchNotifier =
         Provider.of<TwitchNotifier>(context, listen: true);
+    MessagesNotifier messagesNotifier =
+        Provider.of<MessagesNotifier>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (scrollNotifier.needsScroll) {
@@ -46,8 +48,49 @@ class _MessageContainerState extends State<MessageContainer> {
         scrollNotifier.setScroll(false, false);
       }
 
-      if (twitchNotifier.username.isNotEmpty) {
-        // TODO: check if client exists and connected else create new client.
+      if (twitchNotifier.channel.isNotEmpty &&
+          _lastChannel != twitchNotifier.channel) {
+        final client = Client(
+          channels: [twitchNotifier.channel],
+          connection: Connection(
+            secure: true,
+            reconnect: false,
+          ),
+          identity: Identity(twitchNotifier.username, twitchNotifier.token),
+        );
+
+        client.on("connected", (address, port) {
+          messagesNotifier.addMessage("Connected to ${twitchNotifier.channel}",
+              "Multi-Stream Chat", "twitch");
+
+          setState(() {
+            _lastChannel = twitchNotifier.channel;
+          });
+        });
+
+        client.on("disconnected", (reason) {
+          messagesNotifier.addMessage(
+              "Disconnected from Twitch, configure your Twitch account again.",
+              "Multi-Stream Chat",
+              "twitch");
+
+          setState(() {
+            _lastChannel = "";
+          });
+
+          client.close();
+
+          twitchNotifier.setCredentials("", "", "");
+        });
+
+        client.on("message", (channel, userstate, message, self) {
+          if (self) return;
+
+          String username = userstate["display-name"];
+          messagesNotifier.addMessage(message, username, "twitch");
+        });
+
+        client.connect();
       }
     });
 
@@ -56,8 +99,7 @@ class _MessageContainerState extends State<MessageContainer> {
         floatingActionButton: FloatingActionButton(
           tooltip: "Scroll to bottom",
           onPressed: () {
-            messagesNotifier.addMessage(
-                "Hello, world!", "barbarbar338", "twitch");
+            scrollNotifier.setScroll(true, true);
           },
           child: const FaIcon(FontAwesomeIcons.arrowDown),
         ),
