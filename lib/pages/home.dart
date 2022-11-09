@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:font_awesome_flutter/font_awesome_flutter.dart";
 import "package:multi_stream_chat/notifiers/messages_notifier.dart";
 import "package:multi_stream_chat/notifiers/scroll_notifier.dart";
+import 'package:multi_stream_chat/notifiers/twitch_notifier.dart';
 import "package:provider/provider.dart";
 
 class MessageContainer extends StatefulWidget {
@@ -29,16 +30,26 @@ class MyHomePage extends StatelessWidget {
 class _MessageContainerState extends State<MessageContainer> {
   final ScrollController _scrollController = ScrollController();
 
+  // TODO: initialize twitch client.
+
   @override
   Widget build(BuildContext context) {
     ScrollNotifier scrollNotifier =
         Provider.of<ScrollNotifier>(context, listen: true);
+    TwitchNotifier twitchNotifier =
+        Provider.of<TwitchNotifier>(context, listen: true);
 
-    if (scrollNotifier.needsScroll) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToEnd());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollNotifier.needsScroll) {
+        _scrollToEnd();
 
-      scrollNotifier.setScroll(false, false);
-    }
+        scrollNotifier.setScroll(false, false);
+      }
+
+      if (twitchNotifier.username.isNotEmpty) {
+        // TODO: check if client exists and connected else create new client.
+      }
+    });
 
     return Consumer<MessagesNotifier>(
       builder: (context, messagesNotifier, child) => Scaffold(
