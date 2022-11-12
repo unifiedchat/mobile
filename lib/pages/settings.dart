@@ -1,83 +1,58 @@
 import "package:flutter/material.dart";
-import "package:font_awesome_flutter/font_awesome_flutter.dart";
-import "package:multi_stream_chat/notifiers/twitch_notifier.dart";
-import "package:provider/provider.dart";
-import "package:tmi_dart/tmi.dart";
+import "package:flutter_screenutil/flutter_screenutil.dart";
+import "package:get/get.dart";
+import "package:hive/hive.dart";
+import "package:multi_stream_chat/controllers/message_controller.dart";
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPage();
+  State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPage extends State<SettingsPage> {
-  final _usernameController = TextEditingController();
-  final _tokenController = TextEditingController();
-  final _channelController = TextEditingController();
+class _SettingsPageState extends State<SettingsPage> {
+  final _titlePadding = EdgeInsets.symmetric(horizontal: 8.w, vertical: 16.h);
+  final _fieldPadding = EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h);
+  final _biggerFont = TextStyle(fontSize: 24.w);
+  final _bigFont = TextStyle(fontSize: 18.w);
 
-  final _biggerFont = const TextStyle(fontSize: 20);
-  bool _loading = false;
-  bool _connected = false;
-  bool _error = false;
+  final _usernameController = TextEditingController();
+  final _channelController = TextEditingController();
+  final _oauthTokenController = TextEditingController();
+
+  final _settingsBox = Hive.box("settingsBox");
+
+  final MessageController _messageController = Get.put(MessageController());
 
   @override
   Widget build(BuildContext context) {
-    TwitchNotifier twitchNotifier =
-        Provider.of<TwitchNotifier>(context, listen: false);
-
-    if (twitchNotifier.username.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _usernameController.text = twitchNotifier.username;
-        _channelController.text = twitchNotifier.channel;
-        _tokenController.text = twitchNotifier.token;
-
-        _authenticate();
-      });
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
         centerTitle: true,
-        leading: IconButton(
-          tooltip: "Go Back",
-          icon: const FaIcon(FontAwesomeIcons.arrowLeft),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            padding: _titlePadding,
             child: Text(
               "Twitch Settings",
               style: _biggerFont,
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Username",
-              ),
-            ),
-          ),
+              padding: _fieldPadding,
+              child: TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: "Username",
+                ),
+              )),
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _tokenController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "OAuth Token",
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: _fieldPadding,
             child: TextField(
               controller: _channelController,
               decoration: const InputDecoration(
@@ -87,36 +62,45 @@ class _SettingsPage extends State<SettingsPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Stack(
-                children: <Widget>[
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: _connected ? Colors.red : Colors.green),
-                    ),
-                  ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.all(16.0),
-                        textStyle: _biggerFont),
-                    onPressed: _loading || _error
-                        ? null
-                        : _connected
-                            ? _disconnect
-                            : _authenticate,
-                    child: Text(_loading
-                        ? "Connecting"
-                        : _error
-                            ? "Error, try again"
-                            : _connected
-                                ? "Disconnect"
-                                : "Connect"),
-                  ),
-                ],
+            padding: _fieldPadding,
+            child: TextField(
+              controller: _oauthTokenController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: "OAuth Token",
+              ),
+            ),
+          ),
+          Padding(
+            padding: _fieldPadding,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  side: const BorderSide(color: Colors.blue)),
+              onPressed: _onConnect,
+              child: Text(
+                "Connect",
+                style: _bigFont,
+              ),
+            ),
+          ),
+          Padding(
+            padding: _titlePadding,
+            child: Text(
+              "Other Settings",
+              style: _biggerFont,
+            ),
+          ),
+          Padding(
+            padding: _fieldPadding,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.orange,
+                  side: const BorderSide(color: Colors.orange)),
+              onPressed: _onClear,
+              child: Text(
+                "Clear Messages",
+                style: _bigFont,
               ),
             ),
           ),
@@ -128,72 +112,46 @@ class _SettingsPage extends State<SettingsPage> {
   @override
   void dispose() {
     _usernameController.dispose();
-    _tokenController.dispose();
     _channelController.dispose();
+    _oauthTokenController.dispose();
 
     super.dispose();
   }
 
-  void _authenticate() {
-    if (_loading || _connected) return;
+  @override
+  void initState() {
+    super.initState();
 
-    final String username = _usernameController.text;
-    final String token = _tokenController.text;
-    final String channel = _channelController.text;
-
-    if (username.isEmpty || token.isEmpty || channel.isEmpty) return;
-
-    setState(() {
-      _loading = true;
-      _connected = false;
-      _error = false;
-    });
-
-    final client = Client(
-      channels: [channel],
-      connection: Connection(
-        secure: true,
-        reconnect: false,
-      ),
-      identity: Identity(username, token),
-    );
-
-    TwitchNotifier twitchNotifier =
-        Provider.of<TwitchNotifier>(context, listen: false);
-
-    client.on("connected", (address, port) {
-      setState(() {
-        _loading = false;
-        _error = false;
-        _connected = true;
-      });
-
-      twitchNotifier.setCredentials(username, token, channel);
-    });
-
-    client.on("disconnected", (reason) {
-      setState(() {
-        _loading = false;
-        _error = true;
-        _connected = false;
-      });
-
-      twitchNotifier.setCredentials("", "", "");
-    });
-
-    client.connect();
+    _usernameController.text = _settingsBox.get("username");
+    _channelController.text = _settingsBox.get("channel");
+    _oauthTokenController.text = _settingsBox.get("oauthToken");
   }
 
-  void _disconnect() {
-    TwitchNotifier twitchNotifier =
-        Provider.of<TwitchNotifier>(context, listen: false);
+  void _onClear() {
+    _messageController.emptyMessages();
 
-    setState(() {
-      _loading = false;
-      _error = false;
-      _connected = false;
-    });
+    Get.snackbar("Cleared", "All messages cleared!");
+  }
 
-    twitchNotifier.setCredentials("", "", "");
+  void _onConnect() {
+    String username = _usernameController.text;
+    String channel = _channelController.text;
+    String oauthToken = _oauthTokenController.text;
+
+    if (username.isEmpty && channel.isEmpty && oauthToken.isEmpty) {
+      return;
+    }
+
+    Get.snackbar("Connected", "Connected to Twitch!");
+
+    _messageController.addMessage(
+      message: "Connected!",
+      username: "Multi-Stream Chat",
+      platform: "twitch",
+    );
+
+    _settingsBox.put("username", username);
+    _settingsBox.put("channel", channel);
+    _settingsBox.put("oauthToken", oauthToken);
   }
 }

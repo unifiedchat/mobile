@@ -2,36 +2,24 @@ import "dart:io";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:multi_stream_chat/notifiers/messages_notifier.dart";
-import "package:multi_stream_chat/notifiers/scroll_notifier.dart";
-import 'package:multi_stream_chat/notifiers/twitch_notifier.dart';
-import "package:multi_stream_chat/pages/Home.dart";
-import "package:multi_stream_chat/pages/info.dart";
-import "package:multi_stream_chat/pages/settings.dart";
-import "package:provider/provider.dart";
+import "package:flutter_screenutil/flutter_screenutil.dart";
+import "package:get/get.dart";
+import "package:hive/hive.dart";
+import "package:multi_stream_chat/router.dart";
+import "package:path_provider/path_provider.dart";
 import "package:window_size/window_size.dart";
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final dir = await getApplicationDocumentsDirectory();
+  Hive.init(dir.path);
+
+  await Hive.openBox("settingsBox");
+
   setupWindow();
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<ScrollNotifier>(
-            create: (context) => ScrollNotifier()),
-        ChangeNotifierProvider<TwitchNotifier>(
-          create: (context) => TwitchNotifier(),
-        ),
-        ChangeNotifierProxyProvider0<MessagesNotifier>(
-          create: (context) => MessagesNotifier(
-              Provider.of<ScrollNotifier>(context, listen: false)),
-          update: (context, messagesNotifier) => MessagesNotifier(
-              Provider.of<ScrollNotifier>(context, listen: false)),
-        ),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 const double maxHeight = 1080;
@@ -49,8 +37,13 @@ void setupWindow() {
     setWindowMinSize(const Size(minWidth, minHeight));
 
     getCurrentScreen().then((screen) => {
-          setWindowFrame(Rect.fromCenter(
-              center: screen!.frame.center, width: minWidth, height: minHeight))
+          setWindowFrame(
+            Rect.fromCenter(
+              center: screen!.frame.center,
+              width: minWidth,
+              height: minHeight,
+            ),
+          ),
         });
   }
 }
@@ -60,18 +53,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      initialRoute: "/",
-      routes: {
-        "/": (context) => const MyHomePage(),
-        "/settings": (context) => const SettingsPage(),
-        "/info": (context) => const InfoPage(),
-      },
-      title: "Multi-Stream Chat",
-      theme: ThemeData(
-          colorScheme:
-              ColorScheme.fromSwatch().copyWith(secondary: Colors.purple),
-          appBarTheme: const AppBarTheme(backgroundColor: Colors.purple)),
+    return ScreenUtilInit(
+      designSize: const Size(minWidth, minHeight),
+      builder: (context, child) => GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(),
+        home: const MyRouter(),
+      ),
     );
   }
 }
