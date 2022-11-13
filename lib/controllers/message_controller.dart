@@ -9,6 +9,7 @@ import "package:multi_stream_chat/controllers/counter_controller.dart";
 
 class MessageController extends GetxController {
   final Map<String, ListTile> _messages = <String, ListTile>{}.obs;
+
   final CounterController _counterController = Get.put(CounterController());
 
   UnmodifiableListView<ListTile> get messages =>
@@ -40,8 +41,13 @@ class MessageController extends GetxController {
                 : Colors.black,
       ),
       trailing: IconButton(
-        icon: const FaIcon(FontAwesomeIcons.trash, color: Colors.red),
-        onPressed: () => removeMessage(id: id),
+        icon: const FaIcon(
+          FontAwesomeIcons.trash,
+          color: Colors.red,
+        ),
+        onPressed: () => removeMessage(
+          id: id,
+        ),
       ),
       title: Text(
         message,
@@ -59,14 +65,22 @@ class MessageController extends GetxController {
           children: [
             TextSpan(
               text: username,
-              style: const TextStyle(color: Colors.blue),
+              style: const TextStyle(
+                color: Colors.blue,
+              ),
             ),
-            const TextSpan(text: " at "),
+            const TextSpan(
+              text: " at ",
+            ),
             TextSpan(
               text: timestamp,
-              style: const TextStyle(color: Colors.black54),
+              style: const TextStyle(
+                color: Colors.black54,
+              ),
             ),
-            const TextSpan(text: " on "),
+            const TextSpan(
+              text: " on ",
+            ),
             TextSpan(
               text: platform,
               style: TextStyle(

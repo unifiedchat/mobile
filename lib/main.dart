@@ -15,7 +15,7 @@ Future<void> main() async {
   final dir = await getApplicationDocumentsDirectory();
   Hive.init(dir.path);
 
-  await Hive.openBox("settingsBox");
+  await Hive.openBox("twitchBox");
 
   setupWindow();
 

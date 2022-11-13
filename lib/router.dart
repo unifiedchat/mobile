@@ -13,11 +13,13 @@ class MyRouter extends StatefulWidget {
 }
 
 class _MyRouterState extends State<MyRouter> {
+  final MessageController _messageController = Get.put(MessageController());
+
   final List<Widget> _widgetOptions = <Widget>[
     const MessagesPage(),
     const SettingsPage()
   ];
-  final MessageController _messageController = Get.put(MessageController());
+
   int _selectedIndex = 0;
 
   @override
@@ -28,10 +30,10 @@ class _MyRouterState extends State<MyRouter> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: FloatingActionButton(
-        tooltip: "Add Message",
+        tooltip: "Add Test Message",
         onPressed: () => _messageController.addMessage(
-          message: "Merhaba",
-          username: "barbarbar338",
+          message: "Test Message",
+          username: "Multi-Stream Chat",
           platform: "twitch",
         ),
         child: const FaIcon(FontAwesomeIcons.plus),

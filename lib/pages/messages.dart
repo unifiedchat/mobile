@@ -1,8 +1,10 @@
 import "package:flutter/material.dart";
 import "package:get/get.dart";
+import "package:hive/hive.dart";
 import "package:multi_stream_chat/controllers/counter_controller.dart";
 import "package:multi_stream_chat/controllers/message_controller.dart";
 import "package:multi_stream_chat/widgets/messages.dart";
+import "package:tmi_dart/tmi.dart";
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -14,6 +16,12 @@ class MessagesPage extends StatefulWidget {
 class _MessagesPageState extends State<MessagesPage> {
   final MessageController _messageController = Get.put(MessageController());
   final CounterController _counterController = Get.put(CounterController());
+
+  final _twitchBox = Hive.box("twitchBox");
+
+  Function _onDisposeTwitch = () {
+    print("Twitch disposed");
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -39,5 +47,47 @@ class _MessagesPageState extends State<MessagesPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    _onDisposeTwitch();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    String channel = _twitchBox.get(
+      "channel",
+      defaultValue: "",
+    );
+
+    if (channel.isNotEmpty) {
+      Client client = Client(
+        channels: [
+          channel,
+        ],
+        connection: Connection(
+          secure: true,
+          reconnect: true,
+        ),
+      );
+      client.connect();
+
+      _onDisposeTwitch = client.close;
+
+      client.on("message", (channel, userstate, message, self) {
+        if (self) return;
+
+        _messageController.addMessage(
+          message: message,
+          platform: "twitch",
+          username: userstate["display-name"],
+        );
+      });
+    }
   }
 }

@@ -3,6 +3,7 @@ import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
 import "package:hive/hive.dart";
 import "package:multi_stream_chat/controllers/message_controller.dart";
+import "package:tmi_dart/tmi.dart";
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -17,13 +18,15 @@ class _SettingsPageState extends State<SettingsPage> {
   final _biggerFont = TextStyle(fontSize: 24.w);
   final _bigFont = TextStyle(fontSize: 18.w);
 
-  final _usernameController = TextEditingController();
   final _channelController = TextEditingController();
-  final _oauthTokenController = TextEditingController();
 
-  final _settingsBox = Hive.box("settingsBox");
+  final _twitchBox = Hive.box("twitchBox");
 
   final MessageController _messageController = Get.put(MessageController());
+
+  bool _connecting = false;
+  bool _error = false;
+  bool _connected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -43,15 +46,6 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           Padding(
-              padding: _fieldPadding,
-              child: TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: "Username",
-                ),
-              )),
-          Padding(
             padding: _fieldPadding,
             child: TextField(
               controller: _channelController,
@@ -63,23 +57,28 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           Padding(
             padding: _fieldPadding,
-            child: TextField(
-              controller: _oauthTokenController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "OAuth Token",
-              ),
-            ),
-          ),
-          Padding(
-            padding: _fieldPadding,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.blue,
-                  side: const BorderSide(color: Colors.blue)),
+                foregroundColor: _connected
+                    ? Colors.green
+                    : _error
+                        ? Colors.red
+                        : Colors.blue,
+                side: BorderSide(
+                  color: _connected
+                      ? Colors.green
+                      : _error
+                          ? Colors.red
+                          : Colors.blue,
+                ),
+              ),
               onPressed: _onConnect,
               child: Text(
-                "Connect",
+                _connected
+                    ? "Connected"
+                    : _connecting
+                        ? "Connecting"
+                        : "Connect",
                 style: _bigFont,
               ),
             ),
@@ -95,8 +94,11 @@ class _SettingsPageState extends State<SettingsPage> {
             padding: _fieldPadding,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.orange,
-                  side: const BorderSide(color: Colors.orange)),
+                foregroundColor: Colors.orange,
+                side: const BorderSide(
+                  color: Colors.orange,
+                ),
+              ),
               onPressed: _onClear,
               child: Text(
                 "Clear Messages",
@@ -111,9 +113,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
     _channelController.dispose();
-    _oauthTokenController.dispose();
 
     super.dispose();
   }
@@ -122,36 +122,119 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
 
-    _usernameController.text = _settingsBox.get("username");
-    _channelController.text = _settingsBox.get("channel");
-    _oauthTokenController.text = _settingsBox.get("oauthToken");
+    String channel = _twitchBox.get(
+      "channel",
+      defaultValue: "",
+    );
+
+    _channelController.text = channel;
+    if (channel.isNotEmpty) {
+      _onConnect();
+    }
   }
 
   void _onClear() {
-    _messageController.emptyMessages();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Clear Messages"),
+        content: const Text("Are you sure you want to delete all messages?"),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            onPressed: () {
+              _messageController.emptyMessages();
 
-    Get.snackbar("Cleared", "All messages cleared!");
+              Get.back();
+
+              Get.snackbar(
+                "Cleared",
+                "All messages cleared!",
+                duration: const Duration(
+                  seconds: 2,
+                ),
+              );
+            },
+            child: const Text("Delete"),
+          ),
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Get.back(),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onConnect() {
-    String username = _usernameController.text;
-    String channel = _channelController.text;
-    String oauthToken = _oauthTokenController.text;
-
-    if (username.isEmpty && channel.isEmpty && oauthToken.isEmpty) {
+    if (_connecting) {
       return;
     }
 
-    Get.snackbar("Connected", "Connected to Twitch!");
+    String channel = _channelController.text;
 
-    _messageController.addMessage(
-      message: "Connected!",
-      username: "Multi-Stream Chat",
-      platform: "twitch",
+    if (channel.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _connecting = true;
+      _connected = false;
+      _error = false;
+    });
+
+    Client client = Client(
+      channels: [
+        channel,
+      ],
+      connection: Connection(
+        secure: true,
+        reconnect: false,
+      ),
     );
 
-    _settingsBox.put("username", username);
-    _settingsBox.put("channel", channel);
-    _settingsBox.put("oauthToken", oauthToken);
+    client.connect();
+
+    client.on("connected", (address, port) {
+      Get.snackbar(
+        "Connected",
+        "Connected to Twitch!",
+        duration: const Duration(
+          seconds: 2,
+        ),
+      );
+
+      _twitchBox.put("channel", channel);
+
+      setState(() {
+        _connecting = false;
+        _connected = true;
+        _error = false;
+      });
+
+      client.close();
+    });
+
+    client.on("disconnected", (reason) {
+      if (reason != "Connection closed.") {
+        Get.snackbar(
+          "Error",
+          "Can not connect to Twitch: $reason",
+          duration: const Duration(
+            seconds: 3,
+          ),
+        );
+
+        _twitchBox.delete("channel");
+
+        setState(() {
+          _connecting = false;
+          _connected = false;
+          _error = true;
+        });
+      }
+    });
   }
 }
