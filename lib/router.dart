@@ -31,17 +31,12 @@ class _MyRouterState extends State<MyRouter> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: FloatingActionButton(
         tooltip: "Add Test Message",
-        onPressed: () => _messageController.addMessage(
-          message: "Test Message",
-          username: "Multi-Stream Chat",
-          platform: "twitch",
-        ),
+        onPressed: _onFloatingActionButtonPressed,
         child: const FaIcon(FontAwesomeIcons.plus),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        backgroundColor: Colors.white,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.solidMessage),
@@ -57,6 +52,14 @@ class _MyRouterState extends State<MyRouter> {
           ),
         ],
       ),
+    );
+  }
+
+  void _onFloatingActionButtonPressed() {
+    _messageController.addMessage(
+      message: "Test Message",
+      username: "Multi-Stream Chat",
+      platform: "twitch",
     );
   }
 

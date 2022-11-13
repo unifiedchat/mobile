@@ -33,7 +33,7 @@ class MessageController extends GetxController {
             ? FontAwesomeIcons.twitch
             : platform == "youtube"
                 ? FontAwesomeIcons.youtube
-                : FontAwesomeIcons.solidMessage,
+                : FontAwesomeIcons.message,
         color: platform == "twitch"
             ? Colors.purple
             : platform == "youtube"

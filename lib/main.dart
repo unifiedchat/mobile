@@ -4,22 +4,21 @@ import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
-import "package:hive/hive.dart";
+import "package:hive_flutter/hive_flutter.dart";
 import "package:multi_stream_chat/router.dart";
-import "package:path_provider/path_provider.dart";
 import "package:window_size/window_size.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final dir = await getApplicationDocumentsDirectory();
-  Hive.init(dir.path);
+  Hive.initFlutter();
 
   await Hive.openBox("twitchBox");
+  await Hive.openBox("settingsBox");
 
   setupWindow();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 const double maxHeight = 1080;
@@ -49,15 +48,19 @@ void setupWindow() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final _settingsBox = Hive.box("settingsBox");
+
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = _settingsBox.get("dark_mode", defaultValue: false);
+
     return ScreenUtilInit(
       designSize: const Size(minWidth, minHeight),
       builder: (context, child) => GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(),
+        theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
         home: const MyRouter(),
       ),
     );

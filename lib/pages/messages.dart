@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:get/get.dart";
-import "package:hive/hive.dart";
+import "package:hive_flutter/hive_flutter.dart";
 import "package:multi_stream_chat/controllers/counter_controller.dart";
 import "package:multi_stream_chat/controllers/message_controller.dart";
 import "package:multi_stream_chat/widgets/messages.dart";
@@ -75,9 +75,10 @@ class _MessagesPageState extends State<MessagesPage> {
           reconnect: true,
         ),
       );
-      client.connect();
 
       _onDisposeTwitch = client.close;
+
+      client.connect();
 
       client.on("message", (channel, userstate, message, self) {
         if (self) return;

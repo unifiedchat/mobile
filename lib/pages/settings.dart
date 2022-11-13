@@ -1,7 +1,8 @@
+import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
-import "package:hive/hive.dart";
+import "package:hive_flutter/hive_flutter.dart";
 import "package:multi_stream_chat/controllers/message_controller.dart";
 import "package:tmi_dart/tmi.dart";
 
@@ -21,12 +22,19 @@ class _SettingsPageState extends State<SettingsPage> {
   final _channelController = TextEditingController();
 
   final _twitchBox = Hive.box("twitchBox");
+  final _settingsBox = Hive.box("settingsBox");
 
   final MessageController _messageController = Get.put(MessageController());
+
+  Function _onTwitchDispose = () {
+    print("Twitch disposed");
+  };
 
   bool _connecting = false;
   bool _error = false;
   bool _connected = false;
+
+  bool _darkMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +114,17 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
+          Padding(
+            padding: _titlePadding,
+            child: Text(
+              "Dark Mode",
+              style: _bigFont,
+            ),
+          ),
+          CupertinoSwitch(
+            value: _darkMode,
+            onChanged: _onToggleDarkMode,
+          ),
         ],
       ),
     );
@@ -114,6 +133,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     _channelController.dispose();
+    _onTwitchDispose();
 
     super.dispose();
   }
@@ -121,6 +141,12 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
+
+    bool isDark = _settingsBox.get(
+      "dark_mode",
+      defaultValue: false,
+    );
+    _darkMode = isDark;
 
     String channel = _twitchBox.get(
       "channel",
@@ -173,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
-    String channel = _channelController.text;
+    String channel = _channelController.text.toString();
 
     if (channel.isEmpty) {
       return;
@@ -196,6 +222,8 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     client.connect();
+
+    _onTwitchDispose = client.close;
 
     client.on("connected", (address, port) {
       Get.snackbar(
@@ -236,5 +264,15 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       }
     });
+  }
+
+  void _onToggleDarkMode(bool isDark) {
+    setState(() {
+      _darkMode = isDark;
+    });
+
+    _settingsBox.put("dark_mode", isDark);
+
+    Get.changeTheme(isDark ? ThemeData.dark() : ThemeData.light());
   }
 }
