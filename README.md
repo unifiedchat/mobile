@@ -1,16 +1,21 @@
-# multi_stream_chat
+# Multi-Stream Chat App
+- A chat app for streamers who streams on multiple platforms. It connects to all of your streaming platforms and shows all chat in one place. 
+- Currently supports just Twitch.
 
-A new Flutter project.
+# TODO
+- [ ] Add support for YouTube
+- [ ] Add support for Mixer
+- [ ] Add support for Facebook
+- [ ] Add support for DLive
+- [ ] Add support for other platforms
 
-## Getting Started
+# Screenshots
+### Messages 
+![Messages](https://cdn.338.rocks/v1/storage/uploads/images/364837394018599024.png)
+### Settings
+![Settings](https://cdn.338.rocks/v1/storage/uploads/images/364837490076549233.png)
+### Full Example
+![PreviewGIF](https://cdn.338.rocks/v1/storage/uploads/images/364837158571343983.gif)
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# WIP
+Still in development, design, features, everything is can be changed, use it at your own risk.
