@@ -5,13 +5,13 @@ import "package:flutter/material.dart";
 import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
 import "package:hive_flutter/hive_flutter.dart";
-import "package:multi_stream_chat/router.dart";
+import "package:unifiedchat/router.dart";
 import "package:window_size/window_size.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Hive.initFlutter();
+  await Hive.initFlutter();
 
   await Hive.openBox("twitchBox");
   await Hive.openBox("settingsBox");
@@ -30,20 +30,22 @@ void setupWindow() {
   if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
     WidgetsFlutterBinding.ensureInitialized();
 
-    setWindowTitle("Multi-Stream Chat");
+    setWindowTitle("Unified Chat");
 
     setWindowMaxSize(const Size(maxWidth, maxHeight));
     setWindowMinSize(const Size(minWidth, minHeight));
 
-    getCurrentScreen().then((screen) => {
-          setWindowFrame(
-            Rect.fromCenter(
-              center: screen!.frame.center,
-              width: minWidth,
-              height: minHeight,
-            ),
+    getCurrentScreen().then(
+      (screen) => {
+        setWindowFrame(
+          Rect.fromCenter(
+            center: screen!.frame.center,
+            width: minWidth,
+            height: minHeight,
           ),
-        });
+        ),
+      },
+    );
   }
 }
 

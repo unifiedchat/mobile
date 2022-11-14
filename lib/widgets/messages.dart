@@ -2,7 +2,7 @@ import "dart:collection";
 
 import "package:flutter/material.dart";
 import "package:get/get.dart";
-import "package:multi_stream_chat/controllers/scroll_controller.dart";
+import "package:unifiedchat/controllers/scroll_controller.dart";
 
 class MessagesWidget extends StatefulWidget {
   final UnmodifiableListView<ListTile> messages;

@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.multi_stream_chat">
+    package="com.example.unifiedchat">
    <application
-        android:label="multi_stream_chat"
+        android:label="unifiedchat"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

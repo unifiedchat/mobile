@@ -1,4 +1,4 @@
-name: multi_stream_chat
+name: unifiedchat
 description: A chat app for streamers who streams on multiple platforms.
 publish_to: none
 version: "0.0.1"
@@ -21,9 +21,6 @@ dependencies:
     git:
       url: https://github.com/google/flutter-desktop-embedding.git
       path: plugins/window_size
-  tmi_dart:
-    git:
-      url: https://github.com/alanqchen/tmi_dart.git
 
 dev_dependencies:
   flutter_lints: ^2.0.0

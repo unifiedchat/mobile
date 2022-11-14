@@ -5,7 +5,7 @@ import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:font_awesome_flutter/font_awesome_flutter.dart";
 import "package:get/get.dart";
 import "package:intl/intl.dart";
-import "package:multi_stream_chat/controllers/counter_controller.dart";
+import "package:unifiedchat/controllers/counter_controller.dart";
 
 class MessageController extends GetxController {
   final Map<String, ListTile> _messages = <String, ListTile>{}.obs;

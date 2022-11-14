@@ -3,8 +3,7 @@ import "package:flutter/material.dart";
 import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
 import "package:hive_flutter/hive_flutter.dart";
-import "package:multi_stream_chat/controllers/message_controller.dart";
-import "package:tmi_dart/tmi.dart";
+import "package:unifiedchat/controllers/message_controller.dart";
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -25,14 +24,6 @@ class _SettingsPageState extends State<SettingsPage> {
   final _settingsBox = Hive.box("settingsBox");
 
   final MessageController _messageController = Get.put(MessageController());
-
-  Function _onTwitchDispose = () {
-    print("Twitch disposed");
-  };
-
-  bool _connecting = false;
-  bool _error = false;
-  bool _connected = false;
 
   bool _darkMode = false;
 
@@ -67,26 +58,14 @@ class _SettingsPageState extends State<SettingsPage> {
             padding: _fieldPadding,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                foregroundColor: _connected
-                    ? Colors.green
-                    : _error
-                        ? Colors.red
-                        : Colors.blue,
-                side: BorderSide(
-                  color: _connected
-                      ? Colors.green
-                      : _error
-                          ? Colors.red
-                          : Colors.blue,
+                foregroundColor: Colors.blue,
+                side: const BorderSide(
+                  color: Colors.blue,
                 ),
               ),
               onPressed: _onConnect,
               child: Text(
-                _connected
-                    ? "Connected"
-                    : _connecting
-                        ? "Connecting"
-                        : "Connect",
+                "Connect",
                 style: _bigFont,
               ),
             ),
@@ -133,7 +112,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     _channelController.dispose();
-    _onTwitchDispose();
 
     super.dispose();
   }
@@ -154,9 +132,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     _channelController.text = channel;
-    if (channel.isNotEmpty) {
-      _onConnect();
-    }
   }
 
   void _onClear() {
@@ -195,75 +170,21 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _onConnect() {
-    if (_connecting) {
-      return;
-    }
-
     String channel = _channelController.text.toString();
 
     if (channel.isEmpty) {
       return;
     }
 
-    setState(() {
-      _connecting = true;
-      _connected = false;
-      _error = false;
-    });
-
-    Client client = Client(
-      channels: [
-        channel,
-      ],
-      connection: Connection(
-        secure: true,
-        reconnect: false,
+    Get.snackbar(
+      "Connected",
+      "Connected to Twitch!",
+      duration: const Duration(
+        seconds: 2,
       ),
     );
 
-    client.connect();
-
-    _onTwitchDispose = client.close;
-
-    client.on("connected", (address, port) {
-      Get.snackbar(
-        "Connected",
-        "Connected to Twitch!",
-        duration: const Duration(
-          seconds: 2,
-        ),
-      );
-
-      _twitchBox.put("channel", channel);
-
-      setState(() {
-        _connecting = false;
-        _connected = true;
-        _error = false;
-      });
-
-      client.close();
-    });
-
-    client.on("disconnected", (reason) {
-      if (reason != "Connection closed.") {
-        Get.snackbar(
-          "Error",
-          "Can not connect to Twitch: $reason",
-          duration: const Duration(
-            seconds: 3,
-          ),
-        );
-
-        _twitchBox.delete("channel");
-
-        setState(() {
-          _connecting = false;
-          _connected = false;
-          _error = true;
-        });
-      }
-    });
+    _twitchBox.put("channel", channel);
   }
 
   void _onToggleDarkMode(bool isDark) {

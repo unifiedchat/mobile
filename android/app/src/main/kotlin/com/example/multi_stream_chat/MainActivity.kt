@@ -1,4 +1,4 @@
-package com.example.multi_stream_chat
+package com.example.unifiedchat
 
 import io.flutter.embedding.android.FlutterActivity
 
