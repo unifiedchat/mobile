@@ -4,6 +4,7 @@ import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
 import "package:hive_flutter/hive_flutter.dart";
 import "package:unifiedchat/controllers/message_controller.dart";
+import "package:unifiedchat/pages/login.dart";
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -104,6 +105,29 @@ class _SettingsPageState extends State<SettingsPage> {
             value: _darkMode,
             onChanged: _onToggleDarkMode,
           ),
+          Padding(
+            padding: _titlePadding,
+            child: Text(
+              "Logged in as: ${_settingsBox.get("username")}",
+              style: _bigFont,
+            ),
+          ),
+          Padding(
+            padding: _fieldPadding,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(
+                  color: Colors.red,
+                ),
+              ),
+              onPressed: _onLogout,
+              child: Text(
+                "Logout",
+                style: _bigFont,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -185,6 +209,21 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     _twitchBox.put("channel", channel);
+  }
+
+  void _onLogout() {
+    _settingsBox.put("username", "");
+    _settingsBox.put("access_token", "");
+
+    Get.snackbar(
+      "Logged Out!",
+      "Successfully logged out!",
+      duration: const Duration(
+        seconds: 3,
+      ),
+    );
+
+    Get.offAll(() => const LoginPage());
   }
 
   void _onToggleDarkMode(bool isDark) {

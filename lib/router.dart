@@ -17,7 +17,7 @@ class _MyRouterState extends State<MyRouter> {
 
   final List<Widget> _widgetOptions = <Widget>[
     const MessagesPage(),
-    const SettingsPage()
+    const SettingsPage(),
   ];
 
   int _selectedIndex = 0;

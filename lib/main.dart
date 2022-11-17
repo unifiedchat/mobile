@@ -5,6 +5,7 @@ import "package:flutter/material.dart";
 import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
 import "package:hive_flutter/hive_flutter.dart";
+import "package:unifiedchat/pages/login.dart";
 import "package:unifiedchat/router.dart";
 import "package:window_size/window_size.dart";
 
@@ -57,13 +58,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = _settingsBox.get("dark_mode", defaultValue: false);
+    String token = _settingsBox.get("access_token", defaultValue: "");
 
     return ScreenUtilInit(
       designSize: const Size(minWidth, minHeight),
       builder: (context, child) => GetMaterialApp(
         debugShowCheckedModeBanner: false,
         theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
-        home: const MyRouter(),
+        home: token.isEmpty ? const LoginPage() : const MyRouter(),
       ),
     );
   }
