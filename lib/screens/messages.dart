@@ -5,14 +5,14 @@ import "package:unifiedchat/controllers/counter_controller.dart";
 import "package:unifiedchat/controllers/message_controller.dart";
 import "package:unifiedchat/widgets/messages.dart";
 
-class MessagesPage extends StatefulWidget {
-  const MessagesPage({super.key});
+class MessagesScreen extends StatefulWidget {
+  const MessagesScreen({super.key});
 
   @override
-  State<MessagesPage> createState() => _MessagesPageState();
+  State<MessagesScreen> createState() => _MessagesScreenState();
 }
 
-class _MessagesPageState extends State<MessagesPage> {
+class _MessagesScreenState extends State<MessagesScreen> {
   final MessageController _messageController = Get.put(MessageController());
   final CounterController _counterController = Get.put(CounterController());
 

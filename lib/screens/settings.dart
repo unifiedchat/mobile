@@ -1,23 +1,22 @@
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
-import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:get/get.dart";
 import "package:hive_flutter/hive_flutter.dart";
 import "package:unifiedchat/controllers/message_controller.dart";
-import "package:unifiedchat/pages/login.dart";
+import "package:unifiedchat/screens/login.dart";
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  final _titlePadding = EdgeInsets.symmetric(horizontal: 8.w, vertical: 16.h);
-  final _fieldPadding = EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h);
-  final _biggerFont = TextStyle(fontSize: 24.w);
-  final _bigFont = TextStyle(fontSize: 18.w);
+class _SettingsScreenState extends State<SettingsScreen> {
+  final _titlePadding = const EdgeInsets.symmetric(horizontal: 8, vertical: 16);
+  final _fieldPadding = const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
+  final _biggerFont = const TextStyle(fontSize: 24);
+  final _bigFont = const TextStyle(fontSize: 18);
 
   final _channelController = TextEditingController();
 
@@ -223,7 +222,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
 
-    Get.offAll(() => const LoginPage());
+    Get.offAll(() => const LoginScreen());
   }
 
   void _onToggleDarkMode(bool isDark) {

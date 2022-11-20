@@ -2,8 +2,8 @@ import "package:flutter/material.dart";
 import "package:font_awesome_flutter/font_awesome_flutter.dart";
 import "package:get/get.dart";
 import "package:unifiedchat/controllers/message_controller.dart";
-import "package:unifiedchat/pages/messages.dart";
-import "package:unifiedchat/pages/settings.dart";
+import "package:unifiedchat/screens/messages.dart";
+import "package:unifiedchat/screens/settings.dart";
 
 class MyRouter extends StatefulWidget {
   const MyRouter({super.key});
@@ -16,8 +16,8 @@ class _MyRouterState extends State<MyRouter> {
   final MessageController _messageController = Get.put(MessageController());
 
   final List<Widget> _widgetOptions = <Widget>[
-    const MessagesPage(),
-    const SettingsPage(),
+    const MessagesScreen(),
+    const SettingsScreen(),
   ];
 
   int _selectedIndex = 0;

@@ -1,18 +1,18 @@
 import "package:flutter/material.dart";
 import "package:get/get.dart";
 import "package:hive_flutter/hive_flutter.dart";
-import "package:unifiedchat/pages/signup.dart";
 import "package:unifiedchat/providers/backend_provider.dart";
 import "package:unifiedchat/router.dart";
+import "package:unifiedchat/screens/signup.dart";
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -103,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onCreate() {
     Get.to(
-      () => const SignupPage(),
+      () => const SignupScreen(),
       transition: Transition.rightToLeftWithFade,
     );
   }

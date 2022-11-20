@@ -1,7 +1,6 @@
 import "dart:collection";
 
 import "package:flutter/material.dart";
-import "package:flutter_screenutil/flutter_screenutil.dart";
 import "package:font_awesome_flutter/font_awesome_flutter.dart";
 import "package:get/get.dart";
 import "package:intl/intl.dart";
@@ -51,15 +50,15 @@ class MessageController extends GetxController {
       ),
       title: Text(
         message,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: 20.w,
+          fontSize: 20,
         ),
       ),
       subtitle: RichText(
         text: TextSpan(
-          style: TextStyle(
-            fontSize: 16.w,
+          style: const TextStyle(
+            fontSize: 16,
             color: Colors.black,
           ),
           children: [
